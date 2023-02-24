@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, Body
+import os
+import pandas as pd
+from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi.exceptions import HTTPException
+
 from src.schemas.s_genarticle import GenArticle
-from src.controllers.c_genarticle import generate_and_post_article
+from src.controllers.c_genarticle import generate_and_post_article, save_excel
 from src.controllers.c_auth import check_authentication
 from typing import Optional, List
 
@@ -29,4 +33,9 @@ def generate_for_article(
     )
     return {'result': result}
 
-
+@router.post('/upload_excel')
+def upload_excel(file: UploadFile= File(...)):
+    if not file.filename.split('.')[-1] == 'xlsx':
+        raise HTTPException(status_code=400, detail="Failure format file")
+    saved_file = save_excel(file)
+    return saved_file
