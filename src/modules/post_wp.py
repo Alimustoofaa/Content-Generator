@@ -1,7 +1,9 @@
 import os
 import time
+import random
 import itertools
 from dotenv import load_dotenv
+from fastapi import HTTPException
 from wordpress_xmlrpc import Client, WordPressPost, WordPressTerm
 from wordpress_xmlrpc.compat import xmlrpc_client
 from wordpress_xmlrpc.methods import media, posts, taxonomies
@@ -36,9 +38,11 @@ def post_image(list_filename, keyword, url_wp):
             post.id = wp.call(posts.EditPost(attachment_id, post))
             url_images.append([response['url'], attachment_id])
             time.sleep(0.01)
-        except:
-            continue
-
+        except Exception as e:
+            print(e)
+            pass
+            # HTTPException(status_code=500, detail=e)
+    if not url_images: HTTPException(status_code=500, detail='Error Image Upload')
     # delete images
     [os.remove('images/'+i) for i in list_filename]
     return url_images
@@ -101,14 +105,20 @@ def post_artikel(response_openai, url_images, keyword, tags_name, category_name,
             tag = wp.call(taxonomies.GetTerms('post_tag', {'search':tag_name}))
             list_tags_name.append(tag[0])
 
-    # post to wp 
-    post = WordPressPost()
-    post.title = keyword.title()
-    post.content = new_artikel
-    post.thumbnail = url_images[0][1]
-    post.post_status = 'publish'
-    post.terms = list_tags_name
-    post.terms.append(category[0])
-    post.id = wp.call(posts.NewPost(post))
-    print(post.id)
-    return f"https://{url_wp}/{keyword.replace(' ', '-')}"
+    # post to wp
+    try: 
+        # get thumbnail image
+        id_image = random.choice(url_images)[1]
+        if not id_image: HTTPException(status_code=500, detail='Error Upload Images')
+        post = WordPressPost()
+        post.title = keyword.title()
+        post.content = new_artikel
+        post.thumbnail = id_image
+        post.post_status = 'publish'
+        post.terms = list_tags_name
+        post.terms.append(category[0])
+        post.id = wp.call(posts.NewPost(post))
+        print(post.id)
+        return f"https://{url_wp}/{keyword.replace(' ', '-')}"
+    except IndexError as e:
+        HTTPException(status_code=500, detail=e)
