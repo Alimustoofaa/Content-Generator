@@ -1,5 +1,6 @@
 import shutil
 import time
+import pytz
 import datetime
 import pandas as pd
 from ..modules.artikel import *
@@ -61,7 +62,9 @@ def schedule_generate_and_post_article(
     if not df_exists:
         write_excel(df_path=df_path, df_exists=df_exists)
         return False
-    hour = datetime.datetime.now().hour
+    
+    ist = pytz.timezone('Asia/Jakarta')
+    hour = datetime.datetime.now(ist).hour
     if hour in [8, 16, 23]:
         df = pd.read_excel(df_path)
         urls_list = df['Url'].unique()
