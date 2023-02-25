@@ -1,5 +1,6 @@
 import shutil
 import time
+import datetime
 import pandas as pd
 from ..modules.artikel import *
 from ..modules.image import *
@@ -55,28 +56,28 @@ def schedule_generate_and_post_article(
         df_path: str='./data/generate_content.xlsx'
     ):
     df_exists = os.path.exists(df_path)
-    print(df_exists)
     if not df_exists:
         write_excel(df_path=df_path, df_exists=df_exists)
         return False
+    hour = datetime.datetime.now().hour
+    if hour in [8, 16, 23]:
+        df = pd.read_excel(df_path)
+        urls_list = df['Url'].unique()
+        for url in urls_list:
+            try: df_unpublish = df.loc[(df['Status'] == 0) & (df['Url']==url)].sample(1)
+            except ValueError: continue
 
-    df = pd.read_excel(df_path)
-    urls_list = df['Url'].unique()
-    for url in urls_list:
-        try: df_unpublish = df.loc[(df['Status'] == 0) & (df['Url']==url)].sample(1)
-        except ValueError: continue
+            for idx, row in df_unpublish.iterrows():
+                keyword     = row['Keyword']
+                tags_name   = row['Tag']
+                category    = row['Category']
+                url_wp      = row['Url']
+                result      = generate_and_post_article(
+                                keyword, tags_name,category, url_wp)
+                print('Generate artickel : {keyword}|{tags_name} | {category} | {url_wp}')
+                print({'result': result})
 
-        for idx, row in df_unpublish.iterrows():
-            keyword     = row['Keyword']
-            tags_name   = row['Tag']
-            category    = row['Category']
-            url_wp      = row['Url']
-            result      = generate_and_post_article(
-                            keyword, tags_name,category, url_wp)
-            print('Generate artickel : {keyword}|{tags_name} | {category} | {url_wp}')
-            print({'result': result})
-
-            df.at[idx,'Status'] = 1
-    df.to_excel(df_path, index=False)
-    del df, df_unpublish,urls_list
-    return True
+                df.at[idx,'Status'] = 1
+        df.to_excel(df_path, index=False)
+        del df, df_unpublish,urls_list
+        return True

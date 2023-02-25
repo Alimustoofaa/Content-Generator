@@ -11,7 +11,7 @@ app.include_router(r_auth.router)
 app.include_router(r_genarticle.router)
 
 @app.on_event("startup")
-@repeat_every(seconds=60*(8*60))  # 8 hour
+@repeat_every(seconds=60)  # 8 hour
 def  schedule_generate_and_post_task() -> None:
     schedule_generate_and_post_article()
 
