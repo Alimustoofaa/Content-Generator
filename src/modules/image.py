@@ -28,7 +28,6 @@ def download_image(list_url_images, keyword, path='images/'):
             image_arr = np.array(bytearray(url_response.read()), dtype=np.uint8)
             image = cv2.imdecode(image_arr, -1)
             # image resize
-            image = resize_image(image)
             w, h = image.shape[:2]
             if w > h: image = imutils.resize(image, width=1000)
             else: image = imutils.resize(image, height=1000)
@@ -42,7 +41,7 @@ def download_image(list_url_images, keyword, path='images/'):
             # cv2.putText(image_trans, text, (15, height - 15), cv2.FONT_ITALIC, 0.5, (255,255,255), 1)
 
             filename = f"{keyword.replace(' ', '_')}_{idx+1}.png"
-            saved = cv2.imwrite('images/'+filename, image_trans, [int(cv2.IMWRITE_WEBP_QUALITY), 100])
+            saved = cv2.imwrite('images/'+filename, image_trans)
             if saved: list_filename.append(filename)
             else: continue
         except:
