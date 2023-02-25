@@ -4,6 +4,7 @@ import random
 import itertools
 from dotenv import load_dotenv
 from fastapi import HTTPException
+from logging_datetime import logging
 from wordpress_xmlrpc import Client, WordPressPost, WordPressTerm
 from wordpress_xmlrpc.compat import xmlrpc_client
 from wordpress_xmlrpc.methods import media, posts, taxonomies
@@ -38,8 +39,9 @@ def post_image(list_filename, keyword, url_wp):
             post.id = wp.call(posts.EditPost(attachment_id, post))
             url_images.append([response['url'], attachment_id])
             time.sleep(0.01)
+            logging.info(f'[Upload Image] Success : {response["url"]}')
         except Exception as e:
-            print(e)
+            logging.error(f'[Upload Image] : {e}')
             pass
             # HTTPException(status_code=500, detail=e)
     if not url_images: HTTPException(status_code=500, detail='Error Image Upload')
@@ -118,7 +120,8 @@ def post_artikel(response_openai, url_images, keyword, tags_name, category_name,
         post.terms = list_tags_name
         post.terms.append(category[0])
         post.id = wp.call(posts.NewPost(post))
-        print(post.id)
+        logging.info(f'[Uplaod Aricle] Sucess : {post.id}')
         return f"https://{url_wp}/{keyword.replace(' ', '-')}"
     except IndexError as e:
+        logging.info(f'[Uplaod Aricle] : {e}')
         HTTPException(status_code=500, detail=e)

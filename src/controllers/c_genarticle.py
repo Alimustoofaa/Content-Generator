@@ -5,26 +5,27 @@ import pandas as pd
 from ..modules.artikel import *
 from ..modules.image import *
 from ..modules.post_wp import *
+from logging_datetime import logging
 
 def generate_and_post_article(
         keyword, tag_name, category,url_auth
     ):
     # get artikel 
     article = get_artikel(keyword)
-    print('Generate article')
+    logging.info(f'[Article] Generate article {keyword}')
     # count image
     count_paragraph = len(article.split('\n\n'))
     url_images = get_image(keyword, count_paragraph)
-    print('Get image')
+    logging.info(f'[Article] Get image {url_images}')
     # download image saved to local
     list_filename = download_image(url_images, keyword)
-    print('Saved Image')
+    logging.info(f'[Article] Saved Image {list_filename}')
     # upload image to wp
     url_uploaded = post_image(list_filename, keyword, url_auth)
-    print('Upload Image')
+    logging.info(f'[Article] Upload Image : {url_uploaded}')
     # upload aricle
     status = post_artikel(article,url_uploaded, keyword, tag_name,category, url_auth)
-    print('Upload article')
+    logging.info(f'[Article] Upload article : {status}')
 
     return status
 
@@ -36,13 +37,14 @@ def save_excel(file):
 
     # write excel
     write_excel(df_path=file_path, df_exists=True)
+    logging.info('[Excel] Write New Excel')
     return {"file_size": file}
 
 def write_excel(df_path, df_exists=False):
     if not df_exists:
         df = pd.DataFrame(columns=['Keyword', 'Tag', 'Category', 'Url', 'Status'])
         df.to_excel(df_path, index=False)
-        print('Create New Excel')
+        logging.info('[Excel] Create New Excel')
     else:
         # concate df
         path_df_main = './data/generate_content.xlsx'
@@ -50,7 +52,7 @@ def write_excel(df_path, df_exists=False):
         df_new = pd.read_excel(df_path)
         df_marger = pd.concat([df_main, df_new])
         df_marger.to_excel(path_df_main, index=False)
-
+        logging.info('[Excel] Add data excel')
 
 def schedule_generate_and_post_article(
         df_path: str='./data/generate_content.xlsx'
@@ -74,8 +76,8 @@ def schedule_generate_and_post_article(
                 url_wp      = row['Url']
                 result      = generate_and_post_article(
                                 keyword, tags_name,category, url_wp)
-                print('Generate artickel : {keyword}|{tags_name} | {category} | {url_wp}')
-                print({'result': result})
+                logging.info(f'[schedule] Generate artickel : {keyword}|{tags_name} | {category} | {url_wp}')
+                logging.info(f'[schedule] result : {result}')
 
                 df.at[idx,'Status'] = 1
         df.to_excel(df_path, index=False)

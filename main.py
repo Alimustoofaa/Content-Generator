@@ -1,10 +1,12 @@
 import uvicorn
 from fastapi import FastAPI
+from logging_datetime import *
+SetupLogger(directory_log='./logger', time_zone='Asia/Jakarta')
+
 from src.routes import r_auth
 from src.routes import r_genarticle
 from src.controllers.c_genarticle import schedule_generate_and_post_article
 from fastapi_utils.tasks import repeat_every
-
 
 app = FastAPI()
 app.include_router(r_auth.router)
@@ -16,5 +18,6 @@ def  schedule_generate_and_post_task() -> None:
     schedule_generate_and_post_article()
 
 if __name__=="__main__":
-    print('[Server] Starting server')
+    
+    logging.info('[Server] Starting server')
     uvicorn.run("main:app",host='0.0.0.0', port=8080,  workers=1, reload=True)
