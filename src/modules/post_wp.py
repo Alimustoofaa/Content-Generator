@@ -8,6 +8,7 @@ from logging_datetime import logging
 from wordpress_xmlrpc import Client, WordPressPost, WordPressTerm
 from wordpress_xmlrpc.compat import xmlrpc_client
 from wordpress_xmlrpc.methods import media, posts, taxonomies
+from xml.parsers.expat import ExpatError
 
 load_dotenv()
 URL, USERNAME, PASSWORD = \
@@ -125,3 +126,5 @@ def post_artikel(response_openai, url_images, keyword, tags_name, category_name,
     except IndexError as e:
         logging.info(f'[Uplaod Aricle] : {e}')
         HTTPException(status_code=500, detail=e)
+    except ExpatError as e:
+        return f"Articel success uploaded to {url_wp}, can't get post id"
