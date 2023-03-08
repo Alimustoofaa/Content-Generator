@@ -82,7 +82,7 @@ def schedule_generate_and_post_article(
                 logging.info(f'[schedule] Generate artickel : {keyword}|{tags_name} | {category} | {url_wp}')
                 logging.info(f'[schedule] result : {result}')
 
-                df.at[idx,'Status'] = 1
+                if result: df.at[idx,'Status'] = 1
         df.to_excel(df_path, index=False)
         del df, df_unpublish,urls_list
         return True
